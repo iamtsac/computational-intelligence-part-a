@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import normalize
+from sklearn import preprocessing
 
 # LOADING DATA AND SPLITTING IT.
 
