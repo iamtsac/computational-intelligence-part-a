@@ -60,5 +60,4 @@ predicts = model.predict(x_test_normalized)
 
 classes = np.argmax(predicts, axis=1)
 
-print("predictions:", classes[0:9], "\n", "expectations:", y_test[0:9])
-
+print("predictions:", classes[0:9], "\n", "expectations:", y_test[0:9]) 
