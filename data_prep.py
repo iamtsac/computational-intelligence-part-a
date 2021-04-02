@@ -10,6 +10,8 @@ from sklearn.model_selection import KFold
 train_csv = pd.read_csv("data/mnist_train.csv")
 test_csv = pd.read_csv("data/mnist_test.csv")
 
+print(test_csv)
+
 x_train = train_csv.loc[:, train_csv.columns != 'label'].to_numpy()
 y_train = train_csv['label'].to_numpy()
 
