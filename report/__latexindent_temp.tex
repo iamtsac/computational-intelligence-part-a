@@ -1,0 +1,65 @@
+% !TEX program = xelatex 
+\documentclass[12pt,a4paper]{report} 
+
+
+\usepackage[LGR, T1]{fontenc} 
+\usepackage{alphabeta} 
+\usepackage[greek,english]{babel}
+\usepackage{fontspec}
+\usepackage{xltxtra}
+\usepackage{amsmath}
+\usepackage{unicode-math}
+\usepackage[normalem]{ulem} 
+\usepackage{polyglossia}
+\usepackage{siunitx}
+\usepackage{lipsum}
+\setmainfont[Ligatures=TeX]{Noto Sans}
+\usepackage{graphicx}
+\usepackage{xgreek}
+\usepackage{enumerate}
+\usepackage{enumitem} 
+\usepackage{listings}   
+\usepackage{hyperref,xcolor} 
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black}, urlcolor={cyan!80!black}
+}
+
+
+
+\graphicspath{ {./images/} }
+
+\newcommand{\code}[1]{\texttt{#1}}         
+
+\renewcommand{\thesection}{\arabic{section}.} %Η αρίθμηση των section ξεκιναει απο το 1. και οχι απο το 0.1
+\renewcommand{\thesubsection}{\alph{subsection}.} %Η αρίθμηση των subsection ξεκιναει απο το α. και οχι απο το 0.1
+
+\title{{\bf \includegraphics[scale=1.0]{up_landscape.jpg} \\ ΤΜΗΜΑ ΜΗΧΑΝΙΚΩΝ ΗΛΕΚΤΡΟΝΙΚΩΝ ΥΠΟΛΟΓΙΣΤΩΝ ΚΑΙ ΠΛΗΡΟΦΟΡΙΚΗΣ  \\ \vspace{3cm}Αναφορά Εργαστηριακής Άσκησης Μέρος Α' \\ Υπολογιστική Νοημοσύνη}}
+\author{Κωνσταντίνος Τσάκωνας}
+\date{Ακαδημαϊκό έτος 2020-21\\ Χειμερινό Εξάμηνο}
+
+\begin{document}
+
+ \maketitle \newpage
+
+    \section*{ Repository Κώδικα}
+        \underline{\textbf{\url{https://github.com/iamtsac/computational-intelligence-part-a}}}
+
+
+    \section*{A1. Προεπεξεργασία και Προετοιμασία δεδομένων.} 
+        Το σύνολο των δεδομένων μας αποτελείται από $785$ στήλες.Στην πρώτη στήλη του αρχείου csv o περιέχεται αριθμός που απεικονίζεται στην εικόνα, ο οποίος είναι το label για το νερωνικό. Στις υπόλοιπες περιέχονται τα pixels της εικόνας. Οπότε το νευρωνικό μας θα έχει ως είσοδο τις στήλες που περιέχουν τα pixels και θα εκπαιδευτεί στα δεδομένα του label.
+        Στο κώδικα εργαζόμαστε ως εξής, αφού φορτώσουμε τα δεδομένα του csv(train\_csv) χρησιμοποιόντας το pandas, χωρίζουμε το y(label) από το x(pixels). Στη συνέχεια μετασχηματίζουμε τη λίστα της εισόδου σε ένα ώστε να περιέχει $60.000$ μητρώα $28\times28$ διαστάσεων. Τη παραπάνω εργασία εφαρμόζουμε και στα δεδομένα που έχουμε για τον έλεγχο(train\_csv). Μέτα από τα παραπάνω θα προκύψει μια λίστα $60.000$ στοιχεία της μορφής. 
+\begin{equation*}
+A_{m,n} = 
+\begin{pmatrix}
+a_{1,1} & a_{1,2} & \cdots & a_{1,n} \\
+a_{2,1} & a_{2,2} & \cdots & a_{2,n} \\
+\vdots  & \vdots  & \ddots & \vdots  \\
+a_{m,1} & a_{m,2} & \cdots & a_{m,n} 
+\end{pmatrix}
+\end{equation*}
+
+
+
+\end{document} 
