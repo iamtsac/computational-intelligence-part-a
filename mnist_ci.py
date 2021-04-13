@@ -4,7 +4,6 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 from sklearn.model_selection import KFold 
-from sklearn.preprocessing import OneHotEncoder
 
 #------------------------------------------------# 
 
@@ -12,9 +11,9 @@ from sklearn.preprocessing import OneHotEncoder
 def load_data(train_csv,test_csv):
     train_csv = pd.read_csv(train_csv)
     test_csv = pd.read_csv(test_csv)
-    x_train = train_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(train_csv.shape[0],28,28)
+    x_train = train_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(train_csv.shape[0],28,28,1)
     y_train = train_csv['label'].to_numpy()
-    x_test = test_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(test_csv.shape[0],28,28)
+    x_test = test_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(test_csv.shape[0],28,28,1)
     y_test = test_csv['label'].to_numpy() 
 
     return x_train, y_train, x_test, y_test 
@@ -23,11 +22,9 @@ def load_data(train_csv,test_csv):
 def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='normalization'):
     
     # One hot on labels, because if the model predict a wrong class
-    #  we can not say that the input was wrong by an offset, because of different classes
-    # y_train = tf.keras.utils.to_categorical(y_train, 10)
-    # y_train = y_train.reshape(60000,10,1)
-    # y_test = tf.keras.utils.to_categorical(y_test, 10)
-    # y_test = y_test.reshape(10000,10,1)
+    # we can not say that the input was wrong by an offset, because of different classes
+    y_train = tf.keras.utils.to_categorical(y_train,10)
+    y_test = tf.keras.utils.to_categorical(y_test,10)
 
     ######## Normalization ############
 
@@ -40,8 +37,8 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
     ########## Centering ###################
 
     elif preprocessing_type == 'centering':
-        x_centering = np.zeros((np.shape(x_train)[0], 28, 28))  
-        x_test_centering =  np.zeros((np.shape(x_test)[0], 28, 28)) 
+        x_centering = np.zeros((np.shape(x_train)[0], 28, 28,1))  
+        x_test_centering =  np.zeros((np.shape(x_test)[0], 28, 28,1)) 
 
         for i,j in zip(range(0,np.shape(x_train)[0]),range(0,np.shape(x_test)[0])):
             scaler = preprocessing.StandardScaler(with_std=False).fit(x_train[i])
@@ -54,8 +51,8 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
     ########## Standardize ################
 
     elif preprocessing_type =='standardize':
-        x_standardize = np.zeros((np.shape(x_train)[0], 28, 28))  
-        x_test_standardize =  np.zeros((np.shape(x_test)[0], 28, 28)) 
+        x_standardize = np.zeros((np.shape(x_train)[0], 28, 28,1))  
+        x_test_standardize =  np.zeros((np.shape(x_test)[0], 28, 28,1)) 
 
         for i,j in zip(range(np.shape(x_train)[0]),range(np.shape(x_test)[0])): 
             scaler = preprocessing.StandardScaler(with_mean=False).fit(x_train[i])
@@ -66,15 +63,16 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
 
         return x_standardize, y_train, x_test_standardize, y_test
 
-def build_model(n=0.001,loss='sparse_categorical_crossentropy',metric=['accuracy']):
+def build_model(hidden_nodes=397,n=0.001,m=0,loss='categorical_crossentropy',metric=['accuracy']):
 
+    input_shape=(28,28,1)
     model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(256,input_shape=(48000,), activation='relu'))
+    model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28,1) to (,784)
+    model.add(tf.keras.layers.Dense(512, activation='relu'))
     model.add(tf.keras.layers.Dense(10, activation='softmax'))
     
     model.compile(
-        optimizer=tf.keras.optimizers.SGD(learning_rate=n),
+        optimizer=tf.keras.optimizers.SGD(learning_rate=n,momentum=m),
         loss=loss,
         metrics=metric
     )
@@ -82,22 +80,27 @@ def build_model(n=0.001,loss='sparse_categorical_crossentropy',metric=['accuracy
 
 def train_model(x_train,y_train,x_test,y_test,epochs=5):
 
-    fold_number = 1
-    kfold = KFold(n_splits=5, shuffle=True)
-    model = build_model()
-    for train_index, test_index in kfold.split(x_train):  
+    fold_number = 0
+    sum_of_loss = sum_of_acc =  0
+    kfold = KFold(n_splits=5, shuffle=False)
+    for train_index, test_index in kfold.split(x_train,y_train):  
 
-        history = model.fit(
+        model = build_model(128) 
+        model.fit(
             x_train[train_index],
             y_train[train_index],
-            epochs=5,
-            verbose=0
+            epochs=15,
+            verbose=0,
             ) 
 
         val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=0)
         print('----------------------------------------------------------------------------')
-        print("For fold ",fold_number,"\n Loss: ", val_loss, " Accuracy: ",val_acc, " \n")
-        fold_number +=1
+        fold_number += 1
+        print("For fold ",(fold_number),"\n Loss: ", val_loss, " Accuracy: ",val_acc, " \n")
+        sum_of_acc += val_acc
+        sum_of_loss += val_loss
+    print("The average of the Loss and Accuracy is: \n", "Loss: ",sum_of_loss/fold_number,"\n","Accuracy: ",sum_of_acc/fold_number," \n ")
+    
 
     return model, val_acc, val_loss
 
@@ -105,11 +108,6 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5):
 def prediction(model,x_test,y_test):
     predicts = model.predict(x_test) 
     classes = np.argmax(predicts, axis=1) 
-    # print("predictions:", classes[0:9], "\n", "expectations:", y_test[0:9]) 
-    # if np.array_equal(classes,y_test):
-    #     print("predictions are equal with the expected")
-    # else: 
-    #     print("they are not equal, there were some false predictions")
 
 
 
@@ -126,3 +124,14 @@ def init_training(learning_rate=1,loss='sparse_categorical_crossentropy',metric=
     prediction(model, x_test, y_test)
 
 init_training()
+
+
+#             ----------------------------------- Probably to be used -------------------------------------------------
+#             ---------------------------------------------------------------------------------------------------------
+#             ---     print("predictions:", classes[0:9], "\n", "expectations:", y_test[0:9])                       ---
+#             ---     if np.array_equal(classes,y_test):                                                            ---
+#             ---         print("predictions are equal with the expected")                                          ---
+#             ---     else:                                                                                         ---
+#             ---         print("they are not equal, there were some false predictions")                            ---
+#             ---------------------------------------------------------------------------------------------------------
+#             ---------------------------------------------------------------------------------------------------------
