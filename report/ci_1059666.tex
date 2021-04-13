@@ -9,9 +9,7 @@
 \usepackage[LGRgreek]{mathastext}   
 \usepackage{graphicx}
 \usepackage{enumerate}
-\usepackage{enumitem}  
-\usepackage{captionf
-\usepackage{xcolor}
+%\usepackage{enumitem}  
 \usepackage{amsmath}
 \usepackage{hyperref,xcolor} 
 \hypersetup{
@@ -24,10 +22,11 @@
 \newcommand{\tl}{\textlatin} 
 \newcommand{\gr}{\selectlanguage{greek}}   
 \newcommand{\code}[1]{\texttt{#1}}         
-\newcommand{\tsuper}{\textsuperscript} \newcommand{\tsub}{\textsubscript}
+%\newcommand{\tsuper}{\textsuperscript} \newcommand{\tsub}{\textsubscript}
+\renewcommand{\labelenumi}{\alph{enumi}}
 
-\renewcommand{\thesection}{\arabic{section}.} 
-\renewcommand{\thesubsection}{\arabic{subsection}.}
+%\renewcommand{\thesection}{\arabic{section}.} 
+%\renewcommand{\thesubsection}{\arabic{subsection}.}
 
 
 \gr \title{{\bf \includegraphics[scale=1.0]{images/up_landscape.jpg} \\ ΤΜΗΜΑ ΜΗΧΑΝΙΚΩΝ ΗΛΕΚΤΡΟΝΙΚΩΝ ΥΠΟΛΟΓΙΣΤΩΝ ΚΑΙ ΠΛΗΡΟΦΟΡΙΚΗΣ  \\ \vspace{3cm}Αναφορά Εργαστηριακής Άσκησης Μέρος Α' \\ Υπολογιστική Νοημοσύνη}}
@@ -42,6 +41,8 @@
         \underline{\tl{\textbf{\url{https://github.com/iamtsac/computational-intelligence-part-a}}}}
 
     \section*{Α1. Προεπεξεργασία και Προετοιμασία δεδομένων.} 
+    \begin{enumerate}
+        \item 
         Το σύνολο των δεδομένων μας αποτελείται από $785$ στήλες. Στην πρώτη στήλη του αρχείου \tl{csv} o περιέχεται αριθμός που απεικονίζεται στην εικόνα, ο οποίος είναι το  \tl{label} για το νερωνικό. Οι υπόπολοιπες στήλες αποτέλουν τα \tl{pixels} της εικόνας. Οπότε το νευρωνικό μας θα έχει ως είσοδο τις στήλες που περιέχουν τα \tl{pixels} και θα εκπαιδευτεί στα δεδομένα του \tl{label}. Στο κώδικα εργαζόμαστε ως εξής, αφού φορτώσουμε τα δεδομένα του \tl{csv(train\_csv)} χρησιμοποιόντας το pandas, χωρίζουμε το \tl{y(label)} από το \tl{x(pixels)}. Στη συνέχεια μετασχηματίζουμε τη λίστα της εισόδου σε ένα ώστε να περιέχει $60.000$ μητρώα $28\times28$ διαστάσεων. Τη παραπάνω εργασία εφαρμόζουμε και στα δεδομένα που έχουμε για τον έλεγχο(\tl{train\_csv}). Μέτα από τα παραπάνω θα προκύψει μια δομή δεδομένων \tl{np.array} διαστάσεων ($6000,28,28$) όπου κάθε θέση θα περιέχει στοιχεία της μορφής:
         \begin{equation*}
         X_i = 
@@ -52,6 +53,18 @@
             pixel_{28,1} & pixel_{28,2} & \cdots & pixel_{28,28} 
         \end{bmatrix} 
         \end{equation*}
+    \end{enumerate}
+
+    \section*{Α2. Επιλογή Αρχιτεκτονικής.}
+
+    \begin{enumerate}
+        \item Στο συγκεκριμένο πρόβλημα μπορούμε να αξιολογήσουμε το μοντέλο μας κάνοντας χρήση του \tl{Cross-Entropy} ή του \tl{Mean-Squared-Error}. Το \tl{MSE} αυτό που μας δείχνει για το μοντέλο μας είναι, ότι όσο μικραίνει το \tl{MSE} τόσο πιο κόντα είναι η έξοδο μας στο επιθυμητό αποτέλεσμα. Από την άλλη το \tl{CE} χρησιμποιείται για να κατηγοριοποιήσει το δεδομένα σε κλάσεις. Θα μπορουσε το  \tl{Cross-Entropy} να ερμηνευθεί ως η πιθανότητα να ανήκει η έξοδο του μοντέλου μας σε μία κλάση. Στη περίπτωση μας το \tl{CE} είναι πιο ιδανικό αφού θέλουμε αφού αυτό που εμείς θέλουμε είνα να κατηγοριοποιήσουμε την είσοδο μας σε μία κατηγορία από τις $[0 $-$ 9]$.
+
+        \item Το νευρωνικό μας θα έχει πλήθος εισόδων $ 28^2 = 784 $ δηλαδή όσα είναι και  τα \tl{pixels} σε κάθε εικόνα. Ουσιαστικά με αυτό τον τρόπο δίνουμε στο μοντέλο μας σαν είσοδο μία εικόνα και προσπαθεί να κατηγοριοποιήσει σε μια κλάση.
+    \end{enumerate}
+
+        
+
 
 
 
