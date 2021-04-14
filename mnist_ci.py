@@ -1,6 +1,8 @@
+import sys
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from scipy.io import savemat
 from matplotlib import pyplot as plt
 from sklearn import preprocessing
 from sklearn.model_selection import KFold 
@@ -11,10 +13,11 @@ from sklearn.model_selection import KFold
 def load_data(train_csv,test_csv):
     train_csv = pd.read_csv(train_csv)
     test_csv = pd.read_csv(test_csv)
-    x_train = train_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(train_csv.shape[0],28,28,1)
+    x_train = train_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(train_csv.shape[0],28,28)
     y_train = train_csv['label'].to_numpy()
-    x_test = test_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(test_csv.shape[0],28,28,1)
+    x_test = test_csv.loc[:, train_csv.columns != 'label'].to_numpy().reshape(test_csv.shape[0],28,28) 
     y_test = test_csv['label'].to_numpy() 
+
 
     return x_train, y_train, x_test, y_test 
 
@@ -37,10 +40,12 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
     ########## Centering ###################
 
     elif preprocessing_type == 'centering':
-        x_centering = np.zeros((np.shape(x_train)[0], 28, 28,1))  
-        x_test_centering =  np.zeros((np.shape(x_test)[0], 28, 28,1)) 
+
+        x_centering = np.zeros((np.shape(x_train)[0], 28, 28))  
+        x_test_centering =  np.zeros((np.shape(x_test)[0], 28, 28)) 
 
         for i,j in zip(range(0,np.shape(x_train)[0]),range(0,np.shape(x_test)[0])):
+
             scaler = preprocessing.StandardScaler(with_std=False).fit(x_train[i])
             scaler_test = preprocessing.StandardScaler(with_std=False).fit(x_train[j])
             x_centering[i] = scaler.transform(x_train[i])
@@ -51,10 +56,12 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
     ########## Standardize ################
 
     elif preprocessing_type =='standardize':
-        x_standardize = np.zeros((np.shape(x_train)[0], 28, 28,1))  
-        x_test_standardize =  np.zeros((np.shape(x_test)[0], 28, 28,1)) 
+
+        x_standardize = np.zeros((np.shape(x_train)[0], 28, 28))  
+        x_test_standardize =  np.zeros((np.shape(x_test)[0], 28, 28)) 
 
         for i,j in zip(range(np.shape(x_train)[0]),range(np.shape(x_test)[0])): 
+
             scaler = preprocessing.StandardScaler(with_mean=False).fit(x_train[i])
             scaler_test = preprocessing.StandardScaler(with_std=False).fit(x_train[j])
             x_standardize[i] = scaler.transform(x_train[i])
@@ -65,9 +72,9 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
 
 def build_model(hidden_nodes=397,n=0.001,m=0,loss='categorical_crossentropy',metric=['accuracy']):
 
-    input_shape=(28,28,1)
+    input_shape=(28,28)
     model = tf.keras.models.Sequential()
-    model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28,1) to (,784)
+    model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28) to (,784)
     model.add(tf.keras.layers.Dense(512, activation='relu'))
     model.add(tf.keras.layers.Dense(10, activation='softmax'))
     
@@ -94,12 +101,13 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5):
             ) 
 
         val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=0)
-        print('----------------------------------------------------------------------------')
+        print('|----------------------------------------------------------------------------|')
         fold_number += 1
-        print("For fold ",(fold_number),"\n Loss: ", val_loss, " Accuracy: ",val_acc, " \n")
+        print("|  For fold ",(fold_number),"\n|  Loss: ", val_loss, " Accuracy: ",val_acc)
         sum_of_acc += val_acc
         sum_of_loss += val_loss
-    print("The average of the Loss and Accuracy is: \n", "Loss: ",sum_of_loss/fold_number,"\n","Accuracy: ",sum_of_acc/fold_number," \n ")
+    print('|----------------------------------------------------------------------------|')
+    print("\n \n The average of the Loss and Accuracy is: \n", "Loss: ",sum_of_loss/fold_number,"\n","Accuracy: ",sum_of_acc/fold_number," \n ")
     
 
     return model, val_acc, val_loss
@@ -120,6 +128,8 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 def init_training(learning_rate=1,loss='sparse_categorical_crossentropy',metric=['accuracy']):
 
     x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
+    np.set_printoptions(threshold=sys.maxsize)
+    print(x_train[0])
     model,val_acc,val_loss = train_model(x_train,y_train, x_test,y_test )
     prediction(model, x_test, y_test)
 
