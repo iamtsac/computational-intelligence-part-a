@@ -4,7 +4,7 @@ import numpy as np
 from numpy import std
 from numpy import mean 
 import tensorflow as tf
-from statistics import mean
+#from statistics import mean
 from sklearn import preprocessing
 from sklearn.model_selection import KFold 
 from matplotlib import pyplot 
@@ -72,27 +72,6 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
 
         return x_standardize, y_train, x_test_standardize, y_test
 
-def summarize_diagnostics(histories):
-    for i in range(len(histories)):
-        # plot loss
-        pyplot.subplot(2, 1, 1)
-        pyplot.title('Cross Entropy Loss')
-        pyplot.plot(histories[i].history['loss'], color='blue', label='train')
-        pyplot.plot(histories[i].history['val_loss'], color='orange', label='test')
-        # plot accuracy
-        pyplot.subplot(2, 1, 2)
-        pyplot.title('Classification Accuracy')
-        pyplot.plot(histories[i].history['accuracy'], color='blue', label='train')
-        pyplot.plot(histories[i].history['val_accuracy'], color='orange', label='test')
-    pyplot.show()
-
-
-def summarize_performance(scores):
-    # print summary
-    print('Accuracy: mean=%.3f std=%.3f, n=%d' % (mean(scores)*100, std(scores)*100, len(scores)))
-    # box and whisker plots of results
-    pyplot.boxplot(scores)
-    pyplot.show()
 
 def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='categorical_crossentropy',metric=['accuracy'],learning_rate=0.001,momentum=0,plot='off'):
 
@@ -135,14 +114,11 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
         sum_of_loss += val_loss 
         scores.append(val_acc)
         histories.append(history)
+
     print('|----------------------------------------------------------------------------|')
     print("\n \n The average of the Loss and Accuracy is: \n", "Loss: ",sum_of_loss/fold_number,"\n","Accuracy: ",sum_of_acc/fold_number," \n ") 
-    if(plot == 'on'):
-        summarize_diagnostics(histories)
-        # summarize estimated performance
-        summarize_performance(scores)
 
-    return model 
+    return histories,plot
 
 
 def prediction(model,x_test,y_test):
@@ -159,19 +135,45 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 
 
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
-#model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=20,verbose=1,learning_rate=0.001,plot='on')
+#model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=5,verbose=1,learning_rate=0.001,plot='on')
 
 hidden_nodes = [10,397,794]
 loss_metrics = [ 'categorical_crossentropy','mse']
 
 for node in hidden_nodes:
+    list_of_histories = list()
+    means = list()
+    epochs=30
     for loss in loss_metrics:
-        print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
-        print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
-        print('|----------------------------------------------------')
+       print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
+       print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
+       print('|----------------------------------------------------')
 
-        model = train_model(x_train,y_train,x_test,y_test,nodes=node,epochs=20,verbose=0,learning_rate=0.001,plot='off',loss=loss)
+       history,plot = train_model(x_train,y_train,x_test,y_test,nodes=node,epochs=epochs,verbose=0,learning_rate=0.001,plot='on',loss=loss)
+       list_of_histories.append(history)
+    for hist in range(len(list_of_histories)):
+        mean_per_loss = list()
+        for hist_of_loss in range(5):
+            mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'])
+
+        means.append(mean(mean_per_loss,axis=0))
+
+    if plot=="on":
+        fig = pyplot.figure()
+        plots = fig.add_subplot(1, 1, 1)   
+        plots.plot([ x for x in range(1,epochs+1)], means[0],label="CE")
+        plots.plot([ x for x in range(1,epochs+1)], means[1], label="MSE")
+        plots.set_xlabel("Epochs")
+        plots.set_ylabel("Mean Of Loss per Epoch")
+        plots.legend()
+        pyplot.title("Convergence with Number of Nodes: " +  str(node))
+        pyplot.show()
+        fig.savefig('%s.png' % str(node))
         
+    
+
+
+       
 
 #prediction(model, x_test, y_test)
 
