@@ -87,6 +87,7 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
         # Model configuration
         model = tf.keras.models.Sequential()
         model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28) to (,784)
+        model.add(tf.keras.layers.Dense(397, activation='relu'))
         model.add(tf.keras.layers.Dense(nodes, activation='relu'))
         model.add(tf.keras.layers.Dense(10, activation='softmax'))
         
@@ -137,7 +138,7 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
 #model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=5,verbose=1,learning_rate=0.001,plot='on')
 
-hidden_nodes = [10,397,794]
+hidden_nodes = [64]
 loss_metrics = [ 'categorical_crossentropy','mse']
 
 for node in hidden_nodes:
@@ -149,7 +150,7 @@ for node in hidden_nodes:
        print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
        print('|----------------------------------------------------')
 
-       history,plot = train_model(x_train,y_train,x_test,y_test,nodes=node,epochs=epochs,verbose=0,learning_rate=0.001,plot='on',loss=loss)
+       history,plot = train_model(x_train,y_train,x_test,y_test,nodes=node,epochs=epochs,verbose=0,learning_rate=0.001,plot='off',loss=loss)
        list_of_histories.append(history)
     for hist in range(len(list_of_histories)):
         mean_per_loss = list()
