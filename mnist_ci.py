@@ -168,7 +168,7 @@ for node in hidden_nodes:
         plots.legend()
         pyplot.title("Convergence with Number of Nodes: " +  str(node))
         pyplot.show()
-        fig.savefig('%s.png' % str(node))
+        fig.savefig('report/images/%s.png' % str(node))
         
     
 
