@@ -42,7 +42,7 @@
 
     \tableofcontents  \newpage
 
-    \section{\tl{Repository} \gr Κώδικα}
+    \section*{\tl{Repository} \gr Κώδικα}
         \underline{\tl{\textbf{\url{https://github.com/iamtsac/computational-intelligence-part-a}}}}
 
     \section{Προεπεξεργασία και Προετοιμασία δεδομένων.} 
@@ -137,5 +137,48 @@
         Στο κώδικα μας χρησιμοποιούμε τον πρώτο τρόπο που αναφέρθηκε για μεγαλύτερη διευκόλυνση. Αφού η βιβλιοθήκη \tl{Tensorflow} δεν διαθέτει ξεχωριστά \tl{callback} για το κριτήριο τερματισμού και για το πρόωρο σταμάτημα.
 
     \end{enumerate}
+    \section{Μεταβολές στον ρυθμό εκπαίδευσης και σταθεράς ορμής}
+         Ο λόγος που χρειάζεται το να είναι $m<1$ γίνεται αντιληπτός από τον τύπο της συνάρτησης του \tl{Gradiend Descent} λαμβάνοντας υπόψιν και την ορμή. Ο τύπος είναι ο εξής (το $\alpha$ του τύπου είναι το $m$):
+        $$ \Delta w_{ji}(n) = \alpha\Delta w_{ji}(n-1) + \eta\delta_j(n)y_i(n) $$
+        Εάν στον παραπάνω τύπο $\alpha>1$ τότε κατά την προσαρμογή των βαρών δίνεται μεγαλύτερη βαρύτητα στις προηγούμενες μεταβολές των βαρών αφού το $\alpha$ πολλαπλασιάζεται με το $\Delta w_{ji}(n-1)$. Αύτο θα επηρεάσει κατά πολύ το βήμα που θα κάνει ο αλγόριθμος στην επόμενη εποχή εκπαίδευσης και υπάρχει πιθανότητα να μην συγκλίνει ποτέ, αφού η προσαρμογή των βαρών θα είναι λαθνασμένη. \newpage
+        Παρακάτω φαίνονται τα αποτελέσματα του νευρωνικού, οι γραφικές παραστάσεις και τα συμπεράσματα μας.
+
+        \begin{table}[h]
+            \centering
+            \begin{tabular}{|c | c | c |c | }
+                \hline
+                η & \tl{m} & \tl{CE loss} & \tl{MSE} \\
+                \hline
+                0.001 & 0.2 & 0,279 & 0,084 \\ 
+                0.001 & 0.6 & 0,207 & 0,070 \\ 
+                0.05  & 0.6 & 0,094 & 0,006 \\ 
+                0.1   & 0.6 & 0,097 & 0,005 \\
+                \hline 
+            \end{tabular} 
+        \end{table}
+        \begin{figure}[H]
+            \raggedright
+                \begin{subfigure}[t]{0.5\textwidth}
+                    \includegraphics[width=10cm,height=5.2cm,left]{images/0.001_0.2.png}
+                \end{subfigure}
+                \begin{subfigure}[t]{0.5\textwidth}
+                    \includegraphics[width=10cm,height=5.2cm,left]{images/0.001_0.6.png}
+                \end{subfigure}
+                \begin{subfigure}[t]{0.5\textwidth}
+                    \includegraphics[width=10cm,height=5.2cm,left]{images/0.05_0.6.png}
+                \end{subfigure}
+        \end{figure}
+
+        \begin{figure}[h]
+            \raggedright
+            \begin{subfigure}[t]{0.5\textwidth}
+               \includegraphics[width=10cm,height=5.2cm,left]{images/0.1_0.6.png}
+            \end{subfigure}
+        \end{figure}
+        καφλκαξφλκ
+
+
+
+
 
 \end{document} 
