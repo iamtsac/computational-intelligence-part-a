@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import numpy as np
 from numpy import std
-from numpy import mean 
 import tensorflow as tf
 #from statistics import mean
 from sklearn import preprocessing
@@ -88,7 +87,7 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
         model = tf.keras.models.Sequential()
         model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28) to (,784)
         model.add(tf.keras.layers.Dense(397, activation='relu'))
-        model.add(tf.keras.layers.Dense(nodes, activation='relu'))
+        model.add(tf.keras.layers.Dense(128, activation='relu'))
         model.add(tf.keras.layers.Dense(10, activation='softmax'))
         
         model.compile(
@@ -96,16 +95,19 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
             loss=loss,
             metrics=metric
         )
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',mode='max',min_delta=0,verbose=verbose,patience=5)
+        save_best = tf.keras.callbacks.ModelCheckpoint('best.weights', monitor='val_loss', verbose=0, save_best_only=True)
 
         history = model.fit(
             x_train[train_index],
             y_train[train_index],
             epochs=epochs,
             verbose=verbose,
-            validation_data=(x_train[test_index], y_train[test_index])
+            validation_data=(x_test, y_test),
+            callbacks=[early_stop,save_best]
             ) 
 
-        val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=0)
+        val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=verbose)
 
 
         print('|----------------------------------------------------------------------------|')
@@ -138,38 +140,55 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
 #model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=5,verbose=1,learning_rate=0.001,plot='on')
 
-hidden_nodes = [64]
+learning_momentum={0.001:0.2,0.05:0.6,0.1:0.6}
 loss_metrics = [ 'categorical_crossentropy','mse']
 
-for node in hidden_nodes:
+for i in learning_momentum:
     list_of_histories = list()
-    means = list()
     epochs=30
+    mean_mse = np.empty((5,epochs))
+    mean_ce = np.empty((5,epochs))
     for loss in loss_metrics:
-       print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
-       print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
-       print('|----------------------------------------------------')
+        #means_per_loss = list()
+        #nans = np.full((5,epochs),np.nan)
+        print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
+        #print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
+        print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
+        print('|----------------------------------------------------')
+    
+        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=0,learning_rate=i,plot='on',loss=loss,momentum=learning_momentum[i])
+        list_of_histories.append(history)
+        for hist in range(len(list_of_histories)): 
+            means_per_loss = np.full((1,epochs),0)
+            for hist_of_loss in range(0,5):
+                means_per_loss = np.vstack((means_per_loss,np.asarray(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len( list_of_histories[hist][hist_of_loss].history['loss'] )))))
+                #mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len(list_of_histories[hist][hist_of_loss].history['loss'])))
+        
+        means_per_loss = np.delete(means_per_loss,(0),axis=0)
 
-       history,plot = train_model(x_train,y_train,x_test,y_test,nodes=node,epochs=epochs,verbose=0,learning_rate=0.001,plot='off',loss=loss)
-       list_of_histories.append(history)
-    for hist in range(len(list_of_histories)):
-        mean_per_loss = list()
-        for hist_of_loss in range(5):
-            mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'])
+        if loss == "mse":
+            mean_mse = np.nanmean(means_per_loss,axis=0)
+        else: 
+            mean_ce = np.nanmean(means_per_loss,axis=0)
 
-        means.append(mean(mean_per_loss,axis=0))
+# #            print(np.asarray(mean_per_loss))
+#             means.append(np.nanmean(means_per_loss,axis=0))
+#     mean1.append(np.nanmean(means_per_loss,axis=0))
+#     print(means)
+    print(mean_ce)
+    print(mean_mse) 
 
     if plot=="on":
         fig = pyplot.figure()
         plots = fig.add_subplot(1, 1, 1)   
-        plots.plot([ x for x in range(1,epochs+1)], means[0],label="CE")
-        plots.plot([ x for x in range(1,epochs+1)], means[1], label="MSE")
+        plots.plot([ x for x in range(1,epochs+1)], mean_ce,label="CE")
+        plots.plot([ x for x in range(1,epochs+1)], mean_mse, label="MSE")
         plots.set_xlabel("Epochs")
         plots.set_ylabel("Mean Of Loss per Epoch")
         plots.legend()
-        pyplot.title("Convergence with Number of Nodes: " +  str(node))
+        pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
         pyplot.show()
-        fig.savefig('report/images/%s.png' % str(node))
+        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
         
     
 
@@ -196,4 +215,29 @@ for node in hidden_nodes:
 #             ---        plt.legend(['train', 'test'], loc='upper left'                                             ---
 #             ---        plt.show()                                                                                 ---
 #             ---------------------------------------------------------------------------------------------------------
-#             ---------------------------------------------------------------------------------------------------------
+# for loss in loss_metrics:
+#    print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
+#    print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
+#    print('|----------------------------------------------------')
+
+#    history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=i,plot='off',loss=loss,momentum=learning_momentum[i])
+#    list_of_histories.append(history)
+# for hist in range(len(list_of_histories)):
+#     mean_per_loss = list()
+#     for hist_of_loss in range(5):
+#         mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'])
+
+#     means.append(mean(mean_per_loss,axis=0))
+
+# if plot=="on":
+#     fig = pyplot.figure()
+#     plots = fig.add_subplot(1, 1, 1)   
+#     plots.plot([ x for x in range(1,epochs+1)], means[0],label="CE")
+#     plots.plot([ x for x in range(1,epochs+1)], means[1], label="MSE")
+#     plots.set_xlabel("Epochs")
+#     plots.set_ylabel("Mean Of Loss per Epoch")
+#     plots.legend()
+#     pyplot.title("Convergence with Number of Nodes: " +  str(node))
+#     pyplot.show()
+#     fig.savefig('report/images/%s.png' % str(node))
+#
