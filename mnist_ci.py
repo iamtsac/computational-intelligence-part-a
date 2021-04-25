@@ -96,7 +96,6 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
             metrics=metric
         )
         early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',mode='max',min_delta=0,verbose=verbose,patience=5)
-        save_best = tf.keras.callbacks.ModelCheckpoint('best.weights', monitor='val_loss', verbose=0, save_best_only=True)
 
         history = model.fit(
             x_train[train_index],
@@ -104,7 +103,7 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
             epochs=epochs,
             verbose=verbose,
             validation_data=(x_test, y_test),
-            callbacks=[early_stop,save_best]
+            callbacks=[early_stop]
             ) 
 
         val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=verbose)
@@ -162,7 +161,6 @@ for i in learning_momentum:
             means_per_loss = np.full((1,epochs),0)
             for hist_of_loss in range(0,5):
                 means_per_loss = np.vstack((means_per_loss,np.asarray(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len( list_of_histories[hist][hist_of_loss].history['loss'] )))))
-                #mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len(list_of_histories[hist][hist_of_loss].history['loss'])))
         
         means_per_loss = np.delete(means_per_loss,(0),axis=0)
 
@@ -171,12 +169,6 @@ for i in learning_momentum:
         else: 
             mean_ce = np.nanmean(means_per_loss,axis=0)
 
-# #            print(np.asarray(mean_per_loss))
-#             means.append(np.nanmean(means_per_loss,axis=0))
-#     mean1.append(np.nanmean(means_per_loss,axis=0))
-#     print(means)
-    print(mean_ce)
-    print(mean_mse) 
 
     if plot=="on":
         fig = pyplot.figure()
