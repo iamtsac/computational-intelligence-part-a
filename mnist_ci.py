@@ -96,7 +96,6 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
             metrics=metric
         )
         early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',mode='max',min_delta=0,verbose=verbose,patience=5)
-        save_best = tf.keras.callbacks.ModelCheckpoint('best.weights', monitor='val_loss', verbose=0, save_best_only=True)
 
         history = model.fit(
             x_train[train_index],
@@ -104,7 +103,7 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
             epochs=epochs,
             verbose=verbose,
             validation_data=(x_test, y_test),
-            callbacks=[early_stop,save_best]
+            callbacks=[early_stop]
             ) 
 
         val_loss, val_acc = model.evaluate(x_train[test_index], y_train[test_index],verbose=verbose)
@@ -121,7 +120,7 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
     print('|----------------------------------------------------------------------------|')
     print("\n \n The average of the Loss and Accuracy is: \n", "Loss: ",sum_of_loss/fold_number,"\n","Accuracy: ",sum_of_acc/fold_number," \n ") 
 
-    return histories
+    return histories,plot
 
 
 def prediction(model,x_test,y_test):
@@ -156,7 +155,7 @@ for i in learning_momentum:
         print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
         print('|----------------------------------------------------')
     
-        history = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=i,plot='off',loss=loss,momentum=learning_momentum[i],r=0.1)
+        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=i,plot='on',loss=loss,momentum=learning_momentum[i],r=0.1)
         list_of_histories.append(history)
         for hist in range(len(list_of_histories)): 
             means_per_loss = np.full((1,epochs),0)
@@ -188,7 +187,7 @@ for i in learning_momentum:
         plots.legend()
         pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
         pyplot.show()
-        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
+#        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
         
     
 
