@@ -139,29 +139,28 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
 #model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=5,verbose=1,learning_rate=0.001,plot='on')
 
-learning_momentum={0.05:0.6}
+#learning_momentum={0.05:0.6}
+regul = [0.01,0.5,0.9]
 loss_metrics = [ 'categorical_crossentropy','mse']
 
-for i in learning_momentum:
+for i in regul:
     list_of_histories = list()
     epochs=30
     mean_mse = np.empty((5,epochs))
     mean_ce = np.empty((5,epochs))
     for loss in loss_metrics:
-        #means_per_loss = list()
-        #nans = np.full((5,epochs),np.nan)
         print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
         #print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
-        print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
+        #print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
+        print('|----------------------------------------------------','\n|  Weight Decay:', i,"")
         print('|----------------------------------------------------')
     
-        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=i,plot='on',loss=loss,momentum=learning_momentum[i],r=0.1)
+        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=0.05,plot='on',loss=loss,momentum=0.6,r=i)
         list_of_histories.append(history)
         for hist in range(len(list_of_histories)): 
             means_per_loss = np.full((1,epochs),0)
             for hist_of_loss in range(0,5):
                 means_per_loss = np.vstack((means_per_loss,np.asarray(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len( list_of_histories[hist][hist_of_loss].history['loss'] )))))
-                #mean_per_loss.append(list_of_histories[hist][hist_of_loss].history['loss'] + [np.nan] * (epochs-len(list_of_histories[hist][hist_of_loss].history['loss'])))
         
         means_per_loss = np.delete(means_per_loss,(0),axis=0)
 
@@ -169,13 +168,6 @@ for i in learning_momentum:
             mean_mse = np.nanmean(means_per_loss,axis=0)
         else: 
             mean_ce = np.nanmean(means_per_loss,axis=0)
-
-# #            print(np.asarray(mean_per_loss))
-#             means.append(np.nanmean(means_per_loss,axis=0))
-#     mean1.append(np.nanmean(means_per_loss,axis=0))
-#     print(means)
-    print(mean_ce)
-    print(mean_mse) 
 
     if plot=="on":
         fig = pyplot.figure()
@@ -185,9 +177,11 @@ for i in learning_momentum:
         plots.set_xlabel("Epochs")
         plots.set_ylabel("Mean Of Loss per Epoch")
         plots.legend()
-        pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
+        #pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
+        pyplot.title("Convergence with  r= " +  str(i))
         pyplot.show()
 #        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
+        fig.savefig('report/images/'+str(i) +'.png')
         
     
 
