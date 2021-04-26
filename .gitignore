@@ -2,4 +2,11 @@
 data/
 venv
 .vscode
+.gitignore
+__pycache__
+logs
+notebooks
+report
+
+
 

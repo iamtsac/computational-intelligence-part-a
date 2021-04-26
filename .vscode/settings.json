@@ -1,3 +1,8 @@
 {
-    "python.pythonPath": "/Users/tsac/.config/miniforge/envs/venv/bin/python"
+    "python.pythonPath": "/Users/tsac/.config/miniforge/envs/venv/bin/python",
+    "spellright.language": [],
+    "spellright.documentTypes": [
+        "markdown",
+        "plaintext"
+    ]
 }

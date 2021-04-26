@@ -72,7 +72,7 @@ def data_preprocessing(x_train, y_train, x_test, y_test, preprocessing_type='nor
         return x_standardize, y_train, x_test_standardize, y_test
 
 
-def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='categorical_crossentropy',metric=['accuracy'],learning_rate=0.001,momentum=0,plot='off'):
+def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='categorical_crossentropy',metric=['accuracy'],learning_rate=0.001,momentum=0,plot='off',r=0.0):
 
     fold_number = 0
     scores ,histories = list(), list()
@@ -86,8 +86,8 @@ def train_model(x_train,y_train,x_test,y_test,epochs=5,nodes=10,verbose=0,loss='
         # Model configuration
         model = tf.keras.models.Sequential()
         model.add(tf.keras.layers.Flatten()) # Change input from shape (,28,28) to (,784)
-        model.add(tf.keras.layers.Dense(397, activation='relu'))
-        model.add(tf.keras.layers.Dense(128, activation='relu'))
+        model.add(tf.keras.layers.Dense(397, activation='relu',kernel_regularizer=tf.keras.regularizers.L2( l2=r)))
+        model.add(tf.keras.layers.Dense(128, activation='relu',kernel_regularizer=tf.keras.regularizers.L2( l2=r)))
         model.add(tf.keras.layers.Dense(10, activation='softmax'))
         
         model.compile(
@@ -139,23 +139,23 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') 
 #model = train_model(x_train,y_train,x_test,y_test,nodes=397,epochs=5,verbose=1,learning_rate=0.001,plot='on')
 
-learning_momentum={0.001:0.2,0.05:0.6,0.1:0.6}
+#learning_momentum={0.05:0.6}
+regul = [0.01,0.5,0.9]
 loss_metrics = [ 'categorical_crossentropy','mse']
 
-for i in learning_momentum:
+for i in regul:
     list_of_histories = list()
     epochs=30
     mean_mse = np.empty((5,epochs))
     mean_ce = np.empty((5,epochs))
     for loss in loss_metrics:
-        #means_per_loss = list()
-        #nans = np.full((5,epochs),np.nan)
         print("|----------------------------------------------------", "\n|  LOSS METRIC IS: ",loss," ")
         #print('|----------------------------------------------------','\n|  NUM OF NODES: ', node," ")
-        print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
+        #print('|----------------------------------------------------','\n|  Learning Rate:', i," Momentum:",learning_momentum[i],"")
+        print('|----------------------------------------------------','\n|  Weight Decay:', i,"")
         print('|----------------------------------------------------')
     
-        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=0,learning_rate=i,plot='on',loss=loss,momentum=learning_momentum[i])
+        history,plot = train_model(x_train,y_train,x_test,y_test,epochs=epochs,verbose=1,learning_rate=0.05,plot='on',loss=loss,momentum=0.6,r=i)
         list_of_histories.append(history)
         for hist in range(len(list_of_histories)): 
             means_per_loss = np.full((1,epochs),0)
@@ -169,7 +169,6 @@ for i in learning_momentum:
         else: 
             mean_ce = np.nanmean(means_per_loss,axis=0)
 
-
     if plot=="on":
         fig = pyplot.figure()
         plots = fig.add_subplot(1, 1, 1)   
@@ -178,9 +177,11 @@ for i in learning_momentum:
         plots.set_xlabel("Epochs")
         plots.set_ylabel("Mean Of Loss per Epoch")
         plots.legend()
-        pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
+        #pyplot.title("Convergence with Learning Rate= " +  str(i)+" and Momentum="+str(learning_momentum[i]))
+        pyplot.title("Convergence with  r= " +  str(i))
         pyplot.show()
-        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
+#        fig.savefig('report/images/'+str(i) + '_' + str(learning_momentum[i]) +'.png')
+        fig.savefig('report/images/'+str(i) +'.png')
         
     
 
