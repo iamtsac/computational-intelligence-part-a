@@ -137,7 +137,6 @@ def init_data(train_csv, test_csv,preprocessing_type='normalization'):
 
 x_train, y_train, x_test, y_test = init_data('data/mnist_train.csv','data/mnist_test.csv') # Path to CSVs
 
-#learning_momentum={0.05:0.6}
 opt_learning_rate=0.05
 default_learning_rate=0.001
 default_momentum=0
